@@ -28,6 +28,7 @@
 
 struct mtk_idle_device {
 	unsigned int cpu;
+	int last_state_idx;
 };
 
 static DEFINE_PER_CPU(struct mtk_idle_device, mtk_idle_devices);
@@ -148,6 +149,7 @@ void __attribute__((weak)) __init mtk_cpuidle_framework_init(void)
  */
 
 struct menu_device {
+	int last_state_idx;
 	int needs_update;
 
 	unsigned int next_timer_us;
@@ -331,7 +333,7 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 		data->needs_update = 0;
 	}
 
-	dev->last_state_idx = CPUIDLE_DRIVER_STATE_START - 1;
+	data->last_state_idx = CPUIDLE_DRIVER_STATE_START - 1;
 
 	/* Special case when user has set very strict latency requirement */
 	if (unlikely(latency_req == 0))
@@ -372,7 +374,7 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 	if (data->next_timer_us > 5 &&
 	    !drv->states[CPUIDLE_DRIVER_STATE_START].disabled &&
 	    dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable == 0)
-		dev->last_state_idx = CPUIDLE_DRIVER_STATE_START;
+		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
 
 	/*
 	 * Find the idle state with the lowest power while satisfying
@@ -389,10 +391,10 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 		if (s->exit_latency > latency_req)
 			continue;
 
-		dev->last_state_idx = i;
+		data->last_state_idx = i;
 	}
 
-	return dev->last_state_idx;
+	return data->last_state_idx;
 }
 
 /**
@@ -407,7 +409,7 @@ static void menu_reflect(struct cpuidle_device *dev, int index)
 {
 	struct menu_device *data = this_cpu_ptr(&menu_devices);
 
-	dev->last_state_idx = index;
+	data->last_state_idx = index;
 	data->needs_update = 1;
 }
 
@@ -419,7 +421,7 @@ static void menu_reflect(struct cpuidle_device *dev, int index)
 static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 {
 	struct menu_device *data = this_cpu_ptr(&menu_devices);
-	int last_idx = dev->last_state_idx;
+	int last_idx = data->last_state_idx;
 	struct cpuidle_state *target = &drv->states[last_idx];
 	unsigned int measured_us;
 	unsigned int new_factor;
@@ -440,7 +442,7 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 	 */
 
 	/* measured value */
-	measured_us = dev->last_residency_ns;
+	measured_us = cpuidle_get_last_residency(dev);
 
 	/* Deduct exit latency */
 	if (measured_us > target->exit_latency)

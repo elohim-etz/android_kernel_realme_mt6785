@@ -109,7 +109,7 @@ static int call_cpuidle(struct cpuidle_driver *drv, struct cpuidle_device *dev,
 	 * update no idle residency and return.
 	 */
 	if (current_clr_polling_and_test()) {
-		dev->last_residency_ns = 0;
+		dev->last_residency = 0;
 		local_irq_enable();
 		return -EBUSY;
 	}
@@ -188,7 +188,7 @@ static void cpuidle_idle_call(void)
 
 		next_state = cpuidle_find_deepest_state(drv, dev);
 		call_cpuidle(drv, dev, next_state);
-	} else if (drv->state_count > 1) {
+	} else {
 		bool stop_tick = true;
 
 		/*
@@ -208,14 +208,6 @@ static void cpuidle_idle_call(void)
 		 * Give the governor an opportunity to reflect on the outcome
 		 */
 		cpuidle_reflect(dev, entered_state);
-	} else {
-		tick_nohz_idle_retain_tick();
-		/*
-		 * If there is only a single idle state (or none), there is
-		 * nothing meaningful for the governor to choose.  Skip the
-		 * governor and always use state 0.
-		 */
-		call_cpuidle(drv, dev, 0);
 	}
 
 exit_idle:
