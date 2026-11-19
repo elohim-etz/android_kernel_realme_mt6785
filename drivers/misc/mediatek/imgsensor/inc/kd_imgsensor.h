@@ -614,7 +614,7 @@ void KD_IMGSENSOR_PROFILE_I2C(char *tag, int trans_num);
 
 #define mDELAY(ms)     mdelay(ms)
 #define uDELAY(us)       udelay(us)
-/* oplus (realme nemo family) sensors */
+/* oplus (realme RM6785 family) sensors */
 #define IMX682_SENSOR_ID                         0x0682
 #define SENSOR_DRVNAME_IMX682_MIPI_RAW           "imx682_mipi_raw"
 #define S5KGM1SP_SENSOR_ID                       0x08D1

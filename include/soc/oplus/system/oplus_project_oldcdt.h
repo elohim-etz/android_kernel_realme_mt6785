@@ -195,7 +195,7 @@ enum OPPO_OPERATOR {
     OPERATOR_19531_ASIA_SIMPLE			= 86,
     OPERATOR_19531_ASIA					= 87,
     OPERATOR_19531_All_BAND				= 88,
-	/*for rm nemo */
+	/*for rm RM6785 */
     OPERATOR_19661_ASIA_SIMPLE           = 101,
     OPERATOR_19661_RUSSIA             	 = 102,
     OPERATOR_19661_All_NET             	 = 103,

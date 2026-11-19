@@ -15,7 +15,7 @@
 
 struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
 #ifdef CONFIG_OPLUS_IMGSENSOR
-	/* realme nemo family, must precede the common entries */
+	/* realme RM6785 family, must precede the common entries */
 	{IMX682_SENSOR_ID, 0xA0, Common_read_region},
 	{S5KGM1SP_SENSOR_ID, 0xA0, Common_read_region, MAX_EEPROM_SIZE_16K},
 	{SALAA_QTECH_MAIN_S5KGM1SP_SENSOR_ID, 0xA0, Common_read_region,
