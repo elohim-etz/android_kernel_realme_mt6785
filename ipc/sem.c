@@ -554,7 +554,7 @@ static inline int sem_more_checks(struct kern_ipc_perm *ipcp,
 	return 0;
 }
 
-SYSCALL_DEFINE3(semget, key_t, key, int, nsems, int, semflg)
+long ksys_semget(key_t key, int nsems, int semflg)
 {
 	struct ipc_namespace *ns;
 	static const struct ipc_ops sem_ops = {
@@ -574,6 +574,11 @@ SYSCALL_DEFINE3(semget, key_t, key, int, nsems, int, semflg)
 	sem_params.u.nsems = nsems;
 
 	return ipcget(ns, &sem_ids(ns), &sem_ops, &sem_params);
+}
+
+SYSCALL_DEFINE3(semget, key_t, key, int, nsems, int, semflg)
+{
+	return ksys_semget(key, nsems, semflg);
 }
 
 /**
@@ -1564,7 +1569,7 @@ out_up:
 	return err;
 }
 
-SYSCALL_DEFINE4(semctl, int, semid, int, semnum, int, cmd, unsigned long, arg)
+long ksys_semctl(int semid, int semnum, int cmd, unsigned long arg)
 {
 	int version;
 	struct ipc_namespace *ns;
@@ -1618,6 +1623,11 @@ SYSCALL_DEFINE4(semctl, int, semid, int, semnum, int, cmd, unsigned long, arg)
 	}
 }
 
+SYSCALL_DEFINE4(semctl, int, semid, int, semnum, int, cmd, unsigned long, arg)
+{
+	return ksys_semctl(semid, semnum, cmd, arg);
+}
+
 #ifdef CONFIG_COMPAT
 
 struct compat_semid_ds {
@@ -1666,7 +1676,7 @@ static int copy_compat_semid_to_user(void __user *buf, struct semid64_ds *in,
 	}
 }
 
-COMPAT_SYSCALL_DEFINE4(semctl, int, semid, int, semnum, int, cmd, int, arg)
+long compat_ksys_semctl(int semid, int semnum, int cmd, int arg)
 {
 	void __user *p = compat_ptr(arg);
 	struct ipc_namespace *ns;
@@ -1709,6 +1719,11 @@ COMPAT_SYSCALL_DEFINE4(semctl, int, semid, int, semnum, int, cmd, int, arg)
 	default:
 		return -EINVAL;
 	}
+}
+
+COMPAT_SYSCALL_DEFINE4(semctl, int, semid, int, semnum, int, cmd, int, arg)
+{
+	return compat_ksys_semctl(semid, semnum, cmd, arg);
 }
 #endif
 
@@ -2110,8 +2125,8 @@ out_free:
 	return error;
 }
 
-SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
-		unsigned, nsops, const struct timespec __user *, timeout)
+long ksys_semtimedop(int semid, struct sembuf __user *tsops,
+		     unsigned int nsops, const struct timespec __user *timeout)
 {
 	if (timeout) {
 		struct timespec64 ts;
@@ -2122,10 +2137,16 @@ SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
 	return do_semtimedop(semid, tsops, nsops, NULL);
 }
 
+SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
+		unsigned int, nsops, const struct timespec __user *, timeout)
+{
+	return ksys_semtimedop(semid, tsops, nsops, timeout);
+}
+
 #ifdef CONFIG_COMPAT
-COMPAT_SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsems,
-		       unsigned, nsops,
-		       const struct compat_timespec __user *, timeout)
+long compat_ksys_semtimedop(int semid, struct sembuf __user *tsems,
+			    unsigned int nsops,
+			    const struct compat_timespec __user *timeout)
 {
 	if (timeout) {
 		struct timespec64 ts;
@@ -2134,6 +2155,13 @@ COMPAT_SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsems,
 		return do_semtimedop(semid, tsems, nsops, &ts);
 	}
 	return do_semtimedop(semid, tsems, nsops, NULL);
+}
+
+COMPAT_SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsems,
+		       unsigned int, nsops,
+		       const struct compat_timespec __user *, timeout)
+{
+	return compat_ksys_semtimedop(semid, tsems, nsops, timeout);
 }
 #endif
 

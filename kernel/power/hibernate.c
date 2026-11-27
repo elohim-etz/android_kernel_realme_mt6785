@@ -707,7 +707,7 @@ int hibernate(void)
 		goto Exit;
 	}
 
-	sys_sync();
+	ksys_sync();
 
 	error = freeze_processes();
 	if (error)
